@@ -19,7 +19,7 @@ public class Cell extends TextField {
             setLocked();
         }
 
-        setPrefSize(50, 50);
+        setPrefSize(80, 80);
         setAlignment(javafx.geometry.Pos.CENTER);
     }
 

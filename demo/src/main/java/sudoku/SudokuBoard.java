@@ -16,8 +16,10 @@ public class SudokuBoard extends GridPane {
     private static final int SIZE = 9;
     public Cell[][] board = new Cell[SIZE][SIZE];
     public Set<Cell> illegalCells = new HashSet<>();
+    public String difficulty;
 
-    public SudokuBoard() {
+    public SudokuBoard(String difficulty) {
+        this.difficulty = difficulty;
         createBoard();
     }
 
@@ -30,7 +32,7 @@ public class SudokuBoard extends GridPane {
 
                 Cell cell;
 
-                if (Math.random() > .9) {
+                if (Math.random() > .8) {
                     cell = new Cell(row, col, true, this);
                     cell.setText(String.valueOf(((int) ((Math.random() * 9) + 1))));
 
@@ -86,5 +88,20 @@ public class SudokuBoard extends GridPane {
                 }
             }
         }
+        System.out.println(illegalCells.size());
+    }
+
+    public boolean isSolved() {
+        for (Cell[] row : board) {
+            for (Cell cell : row) {
+                if (cell.getText().equals("")) {
+                    return false;
+                }
+            }
+        }
+        if (illegalCells.size() != 0) {
+            return false;
+        }
+        return true;
     }
 }
