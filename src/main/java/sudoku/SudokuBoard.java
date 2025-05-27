@@ -3,6 +3,10 @@ package sudoku;
 import java.util.HashSet;
 import java.util.Set;
 
+//import java.net.http.*;
+import java.net.URI;
+//import com.google.gson.Gson;
+
 import javafx.geometry.Pos;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
@@ -103,5 +107,9 @@ public class SudokuBoard extends GridPane {
             return false;
         }
         return true;
+    }
+
+    private void pullBoard(){
+
     }
 }
