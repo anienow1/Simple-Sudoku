@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -18,7 +16,6 @@ public class SudokuBoard extends GridPane {
     private static final int SIZE = 9;
     public Cell[][] board = new Cell[SIZE][SIZE];
     public Set<Cell> illegalCells = new HashSet<>();
-    private boolean isBoardInit = false;
 
     public SudokuBoard() {
         createBoard();
