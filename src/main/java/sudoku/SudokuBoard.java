@@ -3,9 +3,11 @@ package sudoku;
 import java.util.HashSet;
 import java.util.Set;
 
-//import java.net.http.*;
+import java.net.http.*;
 import java.net.URI;
-//import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.Border;
@@ -19,30 +21,43 @@ import javafx.scene.paint.Color;
 public class SudokuBoard extends GridPane {
     private static final int SIZE = 9;
     public Cell[][] board = new Cell[SIZE][SIZE];
+    private Cell[][] solutionBoard = new Cell[SIZE][SIZE];
     public Set<Cell> illegalCells = new HashSet<>();
     public String difficulty;
 
     public SudokuBoard(String difficulty) {
         this.difficulty = difficulty;
+        pullBoardfromSugoku();
         createBoard();
     }
 
     public Cell[][] createBoard() {
         this.setAlignment(Pos.CENTER);
         this.setGridLinesVisible(true);
+        JSONObject grids = pullBoardfromSugoku();
+        JSONArray startBoard = grids.getJSONArray("value");
+        JSONArray solution = grids.getJSONArray("solution");
+
 
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
 
                 Cell cell;
+                Cell solutionCell = new Cell(row, col, true, this);
+                solutionCell.setText(String.valueOf(solution.getJSONArray(row).get(col)));
 
-                if (Math.random() > .8) {
+                int value = (int) startBoard.getJSONArray(row).get(col);
+
+
+                if (value != 0) {
                     cell = new Cell(row, col, true, this);
-                    cell.setText(String.valueOf(((int) ((Math.random() * 9) + 1))));
+                    cell.setText(String.valueOf(value));
 
                 } else {
                     cell = new Cell(row, col, false, this);
                 }
+
+                
 
                 BorderStrokeStyle style = BorderStrokeStyle.SOLID;
                 BorderWidths widths = new BorderWidths( // Make the 3x3 little boxes
@@ -57,6 +72,7 @@ public class SudokuBoard extends GridPane {
                 addInputConstraints(cell, row, col);
 
                 board[row][col] = cell;
+                solutionBoard[row][col] = solutionCell;
                 this.add(cell, col, row);
             }
         }
@@ -92,7 +108,6 @@ public class SudokuBoard extends GridPane {
                 }
             }
         }
-        System.out.println(illegalCells.size());
     }
 
     public boolean isSolved() {
@@ -109,7 +124,35 @@ public class SudokuBoard extends GridPane {
         return true;
     }
 
-    private void pullBoard(){
+    private JSONObject pullBoardfromSugoku() {
+        String url = "https://sudoku-api.vercel.app/api/dosuku?level=" + this.difficulty;
 
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            // Big class called ApiResponse which holds Newboard
+            // Newboard holds results (Success of the query), message, and grids
+            // Grids holds value (the start board), solution (the end board), and difficulty
+            JSONObject json;
+            JSONObject grids;
+            String diff = "";
+
+            do {
+                json = new JSONObject(response.body()).getJSONObject("newboard");
+                grids = json.getJSONArray("grids").getJSONObject(0);
+                System.out.println(this.difficulty + " " + grids.getString("difficulty"));
+                diff = grids.getString("difficulty");
+            } while (!diff.equals(this.difficulty));
+
+            return grids;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
     }
 }

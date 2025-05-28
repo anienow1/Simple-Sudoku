@@ -32,7 +32,7 @@ public class App extends Application {
         root.setAlignment(Pos.CENTER);
 
         // Make an instance of a board
-        SudokuBoard board = new SudokuBoard("Medium");
+        SudokuBoard board = new SudokuBoard("Easy");
 
         // Reset button
         Button newGame = new Button("New Game");
