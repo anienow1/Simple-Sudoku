@@ -32,16 +32,17 @@ public class App extends Application {
         root.setAlignment(Pos.CENTER);
 
         // Make an instance of a board
-        SudokuBoard board = new SudokuBoard("Easy");
+        SudokuBoard board = new SudokuBoard("Medium");
 
         // Reset button
         Button newGame = new Button("New Game");
+
 
         // Timer
         Label timer = new Label("00:00");
         timer.setFont(new Font(30));
 
-        final int[] secondsElapsed = { 0 }; 
+        final int[] secondsElapsed = { 0 };
 
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.seconds(1), event -> {
@@ -50,14 +51,14 @@ public class App extends Application {
                     int seconds = secondsElapsed[0] % 60;
                     timer.setText(String.format("%02d:%02d", minutes, seconds));
                 }));
-                
+
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
 
         // Diffuculty menu
         ComboBox<String> difficultyMenu = new ComboBox<>();
         difficultyMenu.getItems().addAll("Easy", "Medium", "Hard");
-        difficultyMenu.setValue("Medium");
+        difficultyMenu.setValue("Easy");
 
         HBox controls = new HBox(20, difficultyMenu, newGame);
         controls.setAlignment(Pos.CENTER);
@@ -73,6 +74,24 @@ public class App extends Application {
             root.getChildren().add(newBoard);
 
             secondsElapsed[0] = 0;
+        });
+
+        board.setOnKeyTyped(e -> {
+            if (board.isSolved()) {
+                Stage currentStage = (Stage) scene.getWindow();
+
+                // You can create a simple victory screen
+                VBox victoryRoot = new VBox();
+                victoryRoot.setAlignment(Pos.CENTER);
+                victoryRoot.setSpacing(20);
+                Label victoryLabel = new Label("Congratulations! You solved the puzzle!");
+                Button exitButton = new Button("Exit");
+                exitButton.setOnAction(ev -> currentStage.close());
+                victoryRoot.getChildren().addAll(victoryLabel, exitButton);
+
+                Scene victoryScene = new Scene(victoryRoot, 600, 400);
+                currentStage.setScene(victoryScene);
+            }
         });
 
         root.getChildren().addAll(timer, controls, board);

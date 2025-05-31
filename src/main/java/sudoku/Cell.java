@@ -1,5 +1,7 @@
 package sudoku;
 
+import java.util.ArrayList;
+
 import javafx.scene.control.TextField;
 
 public class Cell extends TextField {
@@ -44,90 +46,121 @@ public class Cell extends TextField {
         super.setStyle("-fx-background-color: " + color + ";");
     }
 
-    
+    /**
+     * When called on a cell, this function adds any cells that meet "illegal"
+     * sudoku standards to the field "board"'s illegalList.
+     */
+    public void makeHighlights() {
 
-    public boolean isLegalPosition(Cell cell) {
+        this.board.illegalCells.remove(this);
 
-        boolean isLegal = true;
-        String cellValue = cell.getText();
+        ArrayList<Cell> rowList = rowSafe();
+        ArrayList<Cell> colList = colSafe();
+        ArrayList<Cell> boxList = boxSafe();
 
-        this.board.illegalCells.remove(cell);
+        // Check row for multiples
 
-        try {
-
-            for (int otherCellCol = 0; otherCellCol < 9; otherCellCol++) { // Check for horizontal multiples
-
-                Cell otherCell = this.board.board[this.row][otherCellCol];
-
-                if (!otherCell.getText().equals("")) {
-                    if (otherCell.getText().equals(cellValue) && !cell.equals(otherCell)) { // Highlight illegal boxes
-                                                                                            // red
-                        cell.setStyle("-fx-background-color: red;");
-                        if (!otherCell.isInitial()) {
-                            otherCell.setStyle("-fx-background-color: red;");
-                        }
-
-                        this.board.illegalCells.add(cell);
-                        this.board.illegalCells.add(otherCell);
-
-                        isLegal = false;
-                    }
+        if (rowList.size() > 0) {
+            for (Cell aCell : rowList) {
+                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
+                    this.board.illegalCells.add(aCell);
                 }
             }
-
-            for (int otherCellRow = 0; otherCellRow < 9; otherCellRow++) { // Check for vertical multiples
-
-                Cell otherCell = this.board.board[otherCellRow][this.col];
-
-                if (!otherCell.getText().equals("")) {
-                    if (otherCell.getText().equals(cellValue) && !cell.equals(otherCell)) { // Highlight them red
-                        cell.setStyle("-fx-background-color: red;");
-                        if (!otherCell.isInitial()) {
-                            otherCell.setStyle("-fx-background-color: red;");
-                        }
-                        this.board.illegalCells.add(cell);
-                        this.board.illegalCells.add(otherCell);
-
-                        isLegal = false;
-                    }
-                }
-            }
-
-            // Check the 3x3 box that the tile is in
-
-            int horizontalBox = this.col / 3;
-            int verticalBox = this.row / 3;
-
-            for (int otherCellRow = 0; otherCellRow < 3; otherCellRow++) {
-                for (int otherCellCol = 0; otherCellCol < 3; otherCellCol++) {
-
-                    Cell otherCell = this.board.board[verticalBox * 3 + otherCellRow][horizontalBox * 3 + otherCellCol];
-
-                    if (!otherCell.getText().equals("")) {
-                        if (otherCell.getText().equals(cellValue) && !cell.equals(otherCell)) { // Highlight them red
-                            cell.setStyle("-fx-background-color: red;");
-                            if (!otherCell.isInitial()) {
-                                otherCell.setStyle("-fx-background-color: red;");
-                            }
-                            this.board.illegalCells.add(cell);
-                            this.board.illegalCells.add(otherCell);
-
-                            isLegal = false;
-                        }
-                    }
-                }
-            }
-
-        } catch (java.lang.NumberFormatException e) {
-            System.out.println(e);
-            return false;
         }
 
-        if (isLegal) {
-            cell.setStyle("-fx-background-color: white;"); // If the input box is changed, unhighlight it
+        // Check column for multiples
+
+        if (colList.size() > 0) {
+            for (Cell aCell : colList) {
+                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
+                    this.board.illegalCells.add(aCell);
+                }
+            }
         }
 
-        return isLegal;
+        // Check the 3x3 box for multiples
+
+        if (boxList.size() > 0) {
+            for (Cell aCell : boxList) {
+                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
+                    this.board.illegalCells.add(aCell);
+                }
+            }
+        }
+
+        if (!safeToPlace()) {
+            this.board.illegalCells.add(this);
+        }
+    }
+
+    /**
+     * Iterates through the row on the sudoku board to find any cells with the same
+     * value as the Cell calling the method.
+     * 
+     * @return An ArrayList of all cells in the row with the same value.
+     */
+    private ArrayList<Cell> rowSafe() {
+        ArrayList<Cell> aList = new ArrayList<>();
+
+        for (Cell aCell : this.board.board[this.getRow()]) {
+            if (!aCell.getText().equals("")) {
+                if (aCell.getText().equals(this.getText()) && !aCell.equals(this)) {
+                    aList.add(aCell);
+                }
+            }
+        }
+        return aList;
+    }
+
+    /**
+     * Iterates through the column on the sudoku board to find any cells with the
+     * same value as the Cell calling the method.
+     * 
+     * @return An ArrayList of all cells in the column with the same value.
+     */
+    private ArrayList<Cell> colSafe() {
+        ArrayList<Cell> aList = new ArrayList<>();
+
+        int colIDX = this.getCol();
+        for (Cell[] cells : this.board.board) {
+            if (!cells[colIDX].getText().equals("")) {
+                if (cells[colIDX].getText().equals(this.getText()) && !cells[colIDX].equals(this)) {
+                    aList.add(cells[colIDX]);
+                }
+            }
+        }
+        return aList;
+    }
+
+    /**
+     * Iterates through the 3x3 box on the sudoku board to find any cells with the
+     * same value as the Cell calling the method.
+     * 
+     * @return An ArrayList of all cells in the box with the same value.
+     */
+    private ArrayList<Cell> boxSafe() {
+        ArrayList<Cell> aList = new ArrayList<>();
+
+        int horizontalBox = this.getCol() / 3;
+        int verticalBox = this.getRow() / 3;
+
+        for (int otherCellRow = 0; otherCellRow < 3; otherCellRow++) {
+            for (int otherCellCol = 0; otherCellCol < 3; otherCellCol++) {
+                Cell otherCell = this.board.board[otherCellRow + verticalBox * 3][otherCellCol + horizontalBox * 3];
+                if (!otherCell.getText().equals("")) {
+                    if (otherCell.getText().equals(this.getText()) && !otherCell.equals(this)) {
+                        aList.add(otherCell);
+                    }
+                }
+            }
+        }
+        return aList;
+    }
+
+    private boolean safeToPlace() {
+        return (rowSafe().size() == 0 &&
+                colSafe().size() == 0 &&
+                boxSafe().size() == 0);
     }
 
 }
