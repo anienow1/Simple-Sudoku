@@ -7,7 +7,7 @@ import javafx.scene.control.TextField;
 public class Cell extends TextField {
     private final int row;
     private final int col;
-    private final boolean isLocked;
+    private  boolean isLocked;
     private final SudokuBoard board;
 
     public Cell(int row, int col, boolean locked, SudokuBoard board) {
@@ -37,8 +37,9 @@ public class Cell extends TextField {
         return isLocked;
     }
 
-    private void setLocked() {
+    public void setLocked() {
         this.setEditable(false);
+        this.isLocked = true;
         this.setStyle("-fx-background-color: lightgray; -fx-font-weight: bold;");
     }
 
@@ -58,41 +59,22 @@ public class Cell extends TextField {
         ArrayList<Cell> colList = colSafe();
         ArrayList<Cell> boxList = boxSafe();
 
-        // Check row for multiples
-
-        if (rowList.size() > 0) {
-            for (Cell aCell : rowList) {
-                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
-                    this.board.illegalCells.add(aCell);
-                }
-            }
-        }
-
-        // Check column for multiples
-
-        if (colList.size() > 0) {
-            for (Cell aCell : colList) {
-                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
-                    this.board.illegalCells.add(aCell);
-                }
-            }
-        }
-
-        // Check the 3x3 box for multiples
-
-        if (boxList.size() > 0) {
-            for (Cell aCell : boxList) {
-                if (!aCell.isInitial() && !this.board.illegalCells.contains(aCell)) {
-                    this.board.illegalCells.add(aCell);
-                }
-            }
-        }
+        addIllegalCells(rowList);
+        addIllegalCells(colList);
+        addIllegalCells(boxList);
 
         if (!safeToPlace()) {
             this.board.illegalCells.add(this);
         }
     }
 
+    private void addIllegalCells(ArrayList<Cell> cells) {
+        for (Cell cell : cells) {
+            if (!cell.isInitial() && !this.board.illegalCells.contains(cell)) {
+                this.board.illegalCells.add(cell);
+            }
+        }
+    }
     /**
      * Iterates through the row on the sudoku board to find any cells with the same
      * value as the Cell calling the method.
@@ -141,12 +123,12 @@ public class Cell extends TextField {
     private ArrayList<Cell> boxSafe() {
         ArrayList<Cell> aList = new ArrayList<>();
 
-        int horizontalBox = this.getCol() / 3;
-        int verticalBox = this.getRow() / 3;
+        int horizontalBox = (this.getCol() / 3) * 3;
+        int verticalBox = (this.getRow() / 3) * 3;
 
         for (int otherCellRow = 0; otherCellRow < 3; otherCellRow++) {
             for (int otherCellCol = 0; otherCellCol < 3; otherCellCol++) {
-                Cell otherCell = this.board.board[otherCellRow + verticalBox * 3][otherCellCol + horizontalBox * 3];
+                Cell otherCell = this.board.board[otherCellRow + verticalBox][otherCellCol + horizontalBox];
                 if (!otherCell.getText().equals("")) {
                     if (otherCell.getText().equals(this.getText()) && !otherCell.equals(this)) {
                         aList.add(otherCell);
@@ -157,10 +139,9 @@ public class Cell extends TextField {
         return aList;
     }
 
-    private boolean safeToPlace() {
-        return (rowSafe().size() == 0 &&
-                colSafe().size() == 0 &&
-                boxSafe().size() == 0);
+    public boolean safeToPlace() {
+        return (rowSafe().isEmpty() &&
+                colSafe().isEmpty() &&
+                boxSafe().isEmpty());
     }
-
 }
